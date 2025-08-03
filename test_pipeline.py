@@ -46,10 +46,12 @@ def find_sample_images():
     
     return sample_data, sample_outputs_dir
 
-def test_object_insertion_with_samples():
+def test_object_insertion_with_samples(simple_paste=False):
     """Test object insertion using sample images."""
     print("\n" + "="*50)
     print("TESTING OBJECT INSERTION WITH SAMPLE IMAGES")
+    if simple_paste:
+        print("USING SIMPLE PASTE MODE (no diffusion model)")
     print("="*50)
     
     sample_data, output_dir = find_sample_images()
@@ -68,36 +70,46 @@ def test_object_insertion_with_samples():
         print(f"\n--- Processing {sample['sample_name']} ---")
         
         for i, obj_img in enumerate(sample['object_images']):
+            obj_name = os.path.splitext(os.path.basename(obj_img))[0]  # e.g., "sample_1_obj_1"
             print(f"  Inserting object {i+1}/{len(sample['object_images'])}: {os.path.basename(obj_img)}")
             
+            # Create separate folder for this object insertion test
+            test_folder = os.path.join(output_dir, f"{sample['sample_name']}_object_{obj_name}")
+            os.makedirs(test_folder, exist_ok=True)
+            
             try:
+                # Use simple paste if flag is set
+                diffusion_model = "simple_paste" if simple_paste else "unicombine"
                 result_path = object_insertion_pipeline(
                     sample['main_image'],
                     obj_img,
-                    verify=True
+                    verify=True,
+                    diffusion_model=diffusion_model,
+                    output_dir=test_folder  # Pass the test-specific folder
                 )
                 
                 if result_path:
-                    # Move result to sample_outputs with descriptive name
-                    output_filename = f"{sample['sample_name']}_obj_{i+1}_result.jpg"
-                    output_path = os.path.join(output_dir, output_filename)
+                    # Copy result to test folder with descriptive name
+                    final_result_path = os.path.join(test_folder, "final_result.jpg")
                     
-                    # Copy the result to sample_outputs
+                    # Copy the result to test folder
                     import shutil
-                    shutil.copy2(result_path, output_path)
+                    shutil.copy2(result_path, final_result_path)
                     
                     results.append({
                         'sample': sample['sample_name'],
                         'object': os.path.basename(obj_img),
-                        'output': output_path,
+                        'output': final_result_path,
+                        'test_folder': test_folder,
                         'success': True
                     })
-                    print(f"    ✅ Success: {output_filename}")
+                    print(f"    ✅ Success: {test_folder}/final_result.jpg")
                 else:
                     results.append({
                         'sample': sample['sample_name'],
                         'object': os.path.basename(obj_img),
                         'output': None,
+                        'test_folder': test_folder,
                         'success': False,
                         'error': 'Pipeline failed'
                     })
@@ -108,6 +120,7 @@ def test_object_insertion_with_samples():
                     'sample': sample['sample_name'],
                     'object': os.path.basename(obj_img),
                     'output': None,
+                    'test_folder': test_folder,
                     'success': False,
                     'error': str(e)
                 })
@@ -128,10 +141,12 @@ def test_object_insertion_with_samples():
     
     return results
 
-def test_text_insertion_with_samples():
+def test_text_insertion_with_samples(simple_paste=False):
     """Test text insertion using sample images."""
     print("\n" + "="*50)
     print("TESTING TEXT INSERTION WITH SAMPLE IMAGES")
+    if simple_paste:
+        print("USING SIMPLE PASTE MODE (no diffusion model)")
     print("="*50)
     
     sample_data, output_dir = find_sample_images()
@@ -142,62 +157,66 @@ def test_text_insertion_with_samples():
     
     # Sample texts to insert
     sample_texts = [ "BRAND", "LOGO", "DEMO"]
-    positions = ["top", "bottom"]
     
     results = []
     for sample in sample_data:
         print(f"\n--- Processing {sample['sample_name']} ---")
         
         for text in sample_texts:
-            for position in positions:
-                print(f"  Inserting text '{text}' at {position}")
+            print(f"  Inserting text '{text}'")
+            
+            # Create separate folder for this text insertion test
+            test_folder = os.path.join(output_dir, f"{sample['sample_name']}_text_{text}")
+            os.makedirs(test_folder, exist_ok=True)
+            
+            try:
+                # Use simple paste if flag is set
+                diffusion_model = "simple_paste" if simple_paste else "unicombine"
+                result_path = text_insertion_pipeline(
+                    sample['main_image'],
+                    text,
+                    verify=True,
+                    diffusion_model=diffusion_model,
+                    output_dir=test_folder  # Pass the test-specific folder
+                )
                 
-                try:
-                    result_path = text_insertion_pipeline(
-                        sample['main_image'],
-                        text,
-                        position,
-                        verify=True
-                    )
+                if result_path:
+                    # Copy result to test folder with descriptive name
+                    final_result_path = os.path.join(test_folder, "final_result.jpg")
                     
-                    if result_path:
-                        # Move result to sample_outputs with descriptive name
-                        output_filename = f"{sample['sample_name']}_text_{text}_{position}_result.jpg"
-                        output_path = os.path.join(output_dir, output_filename)
-                        
-                        # Copy the result to sample_outputs
-                        import shutil
-                        shutil.copy2(result_path, output_path)
-                        
-                        results.append({
-                            'sample': sample['sample_name'],
-                            'text': text,
-                            'position': position,
-                            'output': output_path,
-                            'success': True
-                        })
-                        print(f"    ✅ Success: {output_filename}")
-                    else:
-                        results.append({
-                            'sample': sample['sample_name'],
-                            'text': text,
-                            'position': position,
-                            'output': None,
-                            'success': False,
-                            'error': 'Pipeline failed'
-                        })
-                        print(f"    ❌ Failed: {text} at {position}")
-                        
-                except Exception as e:
+                    # Copy the result to test folder
+                    import shutil
+                    shutil.copy2(result_path, final_result_path)
+                    
                     results.append({
                         'sample': sample['sample_name'],
                         'text': text,
-                        'position': position,
-                        'output': None,
-                        'success': False,
-                        'error': str(e)
+                        'output': final_result_path,
+                        'test_folder': test_folder,
+                        'success': True
                     })
-                    print(f"    ❌ Error: {str(e)}")
+                    print(f"    ✅ Success: {test_folder}/final_result.jpg")
+                else:
+                    results.append({
+                        'sample': sample['sample_name'],
+                        'text': text,
+                        'output': None,
+                        'test_folder': test_folder,
+                        'success': False,
+                        'error': 'Pipeline failed'
+                    })
+                    print(f"    ❌ Failed: {text}")
+                    
+            except Exception as e:
+                results.append({
+                    'sample': sample['sample_name'],
+                    'text': text,
+                    'output': None,
+                    'test_folder': test_folder,
+                    'success': False,
+                    'error': str(e)
+                })
+                print(f"    ❌ Error: {str(e)}")
     
     # Print summary
     successful = sum(1 for r in results if r['success'])
@@ -208,7 +227,7 @@ def test_text_insertion_with_samples():
     
     for result in results:
         status = "✅" if result['success'] else "❌"
-        print(f"{status} {result['sample']} - '{result['text']}' at {result['position']}")
+        print(f"{status} {result['sample']} - '{result['text']}'")
         if not result['success'] and 'error' in result:
             print(f"    Error: {result['error']}")
     
@@ -216,7 +235,19 @@ def test_text_insertion_with_samples():
 
 def main():
     """Run the test pipeline with sample images."""
+    import argparse
+    
+    parser = argparse.ArgumentParser(description="Test ThinkNBlend pipeline with sample images")
+    parser.add_argument("--simple_paste", action="store_true",
+                       help="Use simple paste instead of diffusion model (no GPU required)")
+    
+    args = parser.parse_args()
+    
     print("ThinkNBlend Pipeline Test with Sample Images")
+    if args.simple_paste:
+        print("MODE: Simple Paste (no diffusion model required)")
+    else:
+        print("MODE: Full Pipeline (diffusion model required)")
     print("="*50)
     
     # Check if OpenAI API key is set
@@ -249,10 +280,10 @@ def main():
         return
     
     # Test object insertion with sample images
-    object_results = test_object_insertion_with_samples()
+    object_results = test_object_insertion_with_samples(args.simple_paste)
     
     # Test text insertion with sample images
-    text_results = test_text_insertion_with_samples()
+    text_results = test_text_insertion_with_samples(args.simple_paste)
     
     print("\n" + "="*50)
     print("TEST COMPLETE")
