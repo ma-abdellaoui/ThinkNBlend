@@ -261,7 +261,7 @@ python main.py --mode object \
 ```bash
 python main.py --mode text \
   --main_image input/scene.jpg \
-  --text "RESARO" \
+  --text "BRAND" \
   --position top \
   --verify
 ```
