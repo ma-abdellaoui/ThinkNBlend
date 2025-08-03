@@ -1,0 +1,13 @@
+{
+  "reference_object": {
+    "label": "tennis player",
+    "description": "A person ready to serve a tennis ball, centrally positioned and serving as the focus of the image.",
+    "position_role": "reference"
+  },
+  "target_object": {
+    "label": "text_label",
+    "description": "The text 'DEMO' indicating a sample or practice scenario.",
+    "relative_position": "top",
+    "inpainting_description": "Place the text 'DEMO' at the top of the image above the tennis player, ensuring it is clearly visible and centered."
+  }
+}

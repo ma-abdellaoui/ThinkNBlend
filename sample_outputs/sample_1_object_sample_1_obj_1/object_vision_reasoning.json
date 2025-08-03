@@ -1,0 +1,13 @@
+{
+  "reference_object": {
+    "label": "head",
+    "description": "The player's head is suitable as it is a natural place to wear a cap.",
+    "position_role": "reference"
+  },
+  "target_object": {
+    "label": "cap",
+    "description": "A gray and black cap that fits well as headwear for the player.",
+    "relative_position": "top",
+    "inpainting_description": "A gray cap with a black brim placed on the player's head, completing the sporty outfit."
+  }
+}

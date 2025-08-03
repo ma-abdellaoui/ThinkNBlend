@@ -1,0 +1,13 @@
+{
+  "reference_object": {
+    "label": "tennis player's head",
+    "description": "The player's head is suitable as it naturally accommodates headwear like a cap.",
+    "position_role": "reference"
+  },
+  "target_object": {
+    "label": "colorful propeller cap",
+    "description": "The cropped image is a colorful propeller cap, ideal for placement on a head.",
+    "relative_position": "top",
+    "inpainting_description": "Place a colorful propeller cap on the tennis player's head, adding whimsy to the scene."
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "raw_response": "```json\n{\n  \"reference_object\": {\n    \"label\": \"tennis player's head\",\n    \"description\": \"The player's head is suitable as it naturally accommodates headwear like a cap.\",\n    \"position_role\": \"reference\"\n  },\n  \"target_object\": {\n    \"label\": \"colorful propeller cap\",\n    \"description\": \"The cropped image is a colorful propeller cap, ideal for placement on a head.\",\n    \"relative_position\": \"top\",\n    \"inpainting_description\": \"Place a colorful propeller cap on the tennis player's head, adding whimsy to the scene.\"\n  }\n}\n```",
+  "model": "gpt-4o",
+  "usage": {
+    "completion_tokens": 127,
+    "prompt_tokens": 1472,
+    "total_tokens": 1599,
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    },
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    }
+  },
+  "completion_tokens": 127,
+  "prompt_tokens": 1472,
+  "total_tokens": 1599
+}
