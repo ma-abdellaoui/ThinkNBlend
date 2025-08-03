@@ -13,6 +13,8 @@ A comprehensive pipeline for realistically inserting synthetic objects and text 
 - **Batch Processing**: Handle multiple images efficiently
 - **Docker Deployment**: Containerized for GPU deployment
 - **Simple Paste Mode**: Lightweight alternative without diffusion models (no GPU required)
+- **Comprehensive Outputs**: Separate folders with all intermediate files and GPT responses
+- **Modular Configuration**: Centralized prompt and model management in config.py
 
 ## 📋 Requirements
 
@@ -175,6 +177,73 @@ python -m think_n_blend.batch_processor \
 python test_pipeline.py --simple_paste
 ```
 
+## 🧪 Testing
+
+### Test Pipeline
+
+The test pipeline provides comprehensive testing with sample images:
+
+```bash
+# Full pipeline test (requires GPU and UniCombine models)
+python test_pipeline.py
+
+# Simple paste test (no GPU required)
+python test_pipeline.py --simple_paste
+```
+
+#### Sample Structure Required
+
+The test pipeline expects this structure:
+
+```
+sample_inputs/
+├── sample_1.jpg          # Main scene image
+├── sample_1_obj_1.jpg    # First object to insert
+└── sample_1_obj_2.jpg    # Second object to insert
+```
+
+#### Test Pipeline Features
+
+- **Automated Testing**: Tests both object and text insertion
+- **Sample Texts**: Tests with "BRAND", "LOGO", "DEMO"
+- **Separate Folders**: Creates individual folders for each test
+- **Comprehensive Logging**: Detailed pipeline execution logs
+- **Error Handling**: Graceful handling of failed insertions
+- **Performance Metrics**: Success rates and error summaries
+
+#### Test Results Structure
+
+Each test creates a dedicated folder:
+
+```
+sample_outputs/
+├── sample_1_object_sample_1_obj_1/
+│   ├── final_result.jpg                # Final result
+│   ├── gpt_full_response.json          # GPT-4 response
+│   ├── object_vision_reasoning.json    # Reasoning data
+│   ├── simple_paste_result.jpg         # Service output
+│   └── object_bounding_boxes_visualization.jpg
+├── sample_1_text_BRAND/
+│   ├── final_result.jpg                # Text insertion result
+│   ├── gpt_text_full_response.json     # GPT-4 response
+│   ├── text_vision_reasoning.json      # Reasoning data
+│   ├── simple_text_BRAND.jpg           # Service output
+│   └── text_bounding_boxes_visualization.jpg
+└── ... (additional test folders)
+```
+
+#### CLI Entry Points
+
+The CLI can be accessed through multiple methods:
+
+```bash
+# Method 1: Direct script execution
+python main.py --mode object --main_image input/scene.jpg --object_crop input/hat.png
+
+# Method 2: Module execution
+python -m think_n_blend.cli --mode object --main_image input/scene.jpg --object_crop input/hat.png
+```
+
 ## 🏗️ Architecture
 
 The pipeline consists of four main stages:
@@ -204,25 +273,30 @@ ThinkNBlend uses a modular architecture that supports multiple models:
 ```
 ThinkNBlend/
 ├── main.py                          # Entry point
+├── test_pipeline.py                 # Test pipeline with sample images
 ├── think_n_blend/                   # Main package
 │   ├── __init__.py
 │   ├── cli.py                      # Command-line interface
-│   ├── config.py                   # Configuration
+│   ├── config.py                   # Configuration and prompts
 │   ├── schemas.py                  # Data structures
 │   ├── batch_processor.py          # Batch processing
+│   ├── models/                     # Model interfaces
 │   ├── services/                   # Business logic
-│   │   ├── vision_service.py       # GPT-4 Vision
+│   │   ├── vision_service.py       # GPT-4 Vision reasoning
 │   │   ├── detection_service.py    # Object detection
 │   │   ├── composition_service.py  # Bounding box computation
 │   │   ├── blending_service.py     # Diffusion model integration
 │   │   ├── text_service.py         # Text insertion
 │   │   ├── verification_service.py # Quality verification
-│   │   └── model_manager.py        # Model management
+│   │   ├── model_manager.py        # Model management
+│   │   └── simple_paste_service.py # GPU-free alternatives
 │   └── utils/                      # Utilities
 │       └── image_utils.py          # Image processing
 ├── submodules/                     # External model repositories
 │   ├── README.md                   # Submodules documentation
 │   └── UniCombine/                 # UniCombine (git submodule)
+├── sample_inputs/                  # Sample test images
+├── sample_outputs/                 # Test results with organized folders
 ├── input/                          # Input images
 ├── output/                         # Generated images
 ├── Dockerfile                      # Docker configuration
@@ -230,6 +304,84 @@ ThinkNBlend/
 ├── requirements.txt                # Python dependencies
 ├── MODEL_CARD.md                   # Model documentation
 └── QUALITY_ASSESSMENT.md           # Quality evaluation
+```
+
+## 📂 Output Structure
+
+The pipeline creates organized output folders for detailed analysis and debugging:
+
+### Individual CLI Usage
+
+```
+output/
+├── final_result.jpg                    # Final processed image
+├── gpt_full_response.json              # Complete GPT-4 Vision response
+├── gpt_text_full_response.json         # GPT response for text insertion
+├── object_vision_reasoning.json        # Extracted object reasoning
+├── text_vision_reasoning.json          # Extracted text reasoning
+├── simple_paste_result.jpg             # Simple paste mode result
+├── simple_text_[TEXT].jpg               # Simple text insertion result
+├── object_bounding_boxes_visualization.jpg  # Debug visualization
+└── text_bounding_boxes_visualization.jpg    # Text placement visualization
+```
+
+### Test Pipeline Output
+
+Each test creates a separate folder with all intermediate files:
+
+```
+sample_outputs/
+├── sample_1_object_sample_1_obj_1/     # Object insertion test
+│   ├── final_result.jpg                # Final blended image
+│   ├── gpt_full_response.json          # Complete GPT API response
+│   ├── object_vision_reasoning.json    # Parsed reasoning data
+│   ├── simple_paste_result.jpg         # Direct service output
+│   └── object_bounding_boxes_visualization.jpg  # Debug overlay
+├── sample_1_text_BRAND/                # Text insertion test
+│   ├── final_result.jpg                # Final text insertion
+│   ├── gpt_text_full_response.json     # Complete GPT API response
+│   ├── text_vision_reasoning.json      # Parsed reasoning data
+│   ├── simple_text_BRAND.jpg           # Direct service output
+│   └── text_bounding_boxes_visualization.jpg   # Debug overlay
+└── ...
+```
+
+### JSON Output Files
+
+#### GPT Full Response (`gpt_full_response.json` / `gpt_text_full_response.json`)
+
+Contains complete API interaction data:
+
+````json
+{
+  "raw_response": "```json\n{...}\n```",
+  "model": "gpt-4o",
+  "text_to_insert": "BRAND", // For text insertions only
+  "usage": {
+    "completion_tokens": 127,
+    "prompt_tokens": 1812,
+    "total_tokens": 1939
+  }
+}
+````
+
+#### Vision Reasoning (`object_vision_reasoning.json` / `text_vision_reasoning.json`)
+
+Contains extracted reasoning results:
+
+```json
+{
+  "reference_object": {
+    "label": "tennis player",
+    "description": "Suitable reference for object placement",
+    "position_role": "reference"
+  },
+  "target_object": {
+    "label": "cap",
+    "relative_position": "top",
+    "inpainting_description": "Placement description for diffusion model"
+  }
+}
 ```
 
 ## 🔧 Configuration
@@ -243,9 +395,11 @@ ThinkNBlend/
 
 Edit `think_n_blend/config.py` to customize:
 
-- GPT-4 Vision prompts
-- Object detection models
-- Blending parameters
+- **GPT-4 Vision Prompts**:
+  - `GPT4_VISION_PROMPT` for object insertion
+  - `GPT4_TEXT_VISION_PROMPT` for text insertion
+- **Model Settings**: GPT-4 model version, object detection models
+- **Processing Parameters**: Batch size, verification settings, output formats
 
 ## 📊 Quality Assessment
 
@@ -303,15 +457,15 @@ This will:
 
 ### Object Insertion Example
 
-See MODEL_CARD.md For another Example.
-
 ### Input Images
 
-- **Main Scene**: A tennis player in action
+Sample images are provided in the `sample_inputs/` directory:
+
+- **Main Scene**: A tennis player in action (`sample_inputs/sample_1.jpg`)
 
 ![Main Scene](assets/sample_1.jpg)
 
-- **Target Object**: A gray and black cap
+- **Target Object**: A gray and black cap (`sample_inputs/sample_1_obj_1.jpg`)
 
 ![Target Object](assets/sample_1_obj_1.jpg)
 
@@ -352,6 +506,10 @@ Using diffusion mode, the hat was inserted at the calculated position:
 
 _The gray and black cap has been placed on the tennis player's head as determined by the AI reasoning and object detection pipeline._
 
+> ℹ️ See MODEL_CARD.md For another Example.
+
+> ℹ️ The outputs in sample_output are generated using simple copy-paste method due to lack of hardware GPU at the time of writing this readme.
+
 ## 🤝 Contributing
 
 1. Fork the repository
@@ -368,7 +526,7 @@ This project is licensed under the Apache-2.0 - see the LICENSE file for details
 If you use ThinkNBlend in your research:
 
 ```bibtex
-@misc{thinknblend2024,
+@misc{thinknblend2025,
   title={ThinkNBlend: Context-Aware Object and Text Insertion Pipeline},
   author={Alaeddin Abdellaoui},
   year={2025},

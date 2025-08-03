@@ -209,7 +209,7 @@ _The colorful propeller hat has been placed on the tennis player's head as deter
 If you use ThinkNBlend in your research, please cite:
 
 ```bibtex
-@misc{thinknblend2024,
+@misc{thinknblend2025,
   title={ThinkNBlend: Context-Aware Object and Text Insertion Pipeline},
   author={Alaeddin Abdellaoui},
   year={2025},
