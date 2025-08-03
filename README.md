@@ -2,6 +2,8 @@
 
 A comprehensive pipeline for realistically inserting synthetic objects and text into images using GPT-4 Vision reasoning, zero-shot object detection, and Stable Diffusion blending.
 
+![ThinkNBlend Demo](assets/demo.jpg)
+
 ## 🚀 Features
 
 - **Object Insertion**: Realistically insert objects (hats, bottles, etc.) into scenes
@@ -110,7 +112,7 @@ Insert text into a scene:
 ```bash
 python main.py --mode text \
   --main_image input/scene.jpg \
-  --text "RESARO" \
+  --text "BRAND" \
   --position top \
   --verify
 ```
@@ -149,7 +151,7 @@ python -m think_n_blend.batch_processor \
 python -m think_n_blend.batch_processor \
   --mode text \
   --input_dir input/scenes \
-  --texts "RESARO" "BRAND" "LOGO" \
+  --texts  "BRAND" "LOGO" \
   --positions top bottom \
   --verify
 ```
@@ -299,7 +301,7 @@ Output:
 Input:
 
 - Main image: Street scene
-- Text: "RESARO"
+- Text: "BRAND"
 
 Output:
 
