@@ -48,8 +48,14 @@ class ModelManager:
     def check_model_availability(self, model_name: str, model_type: str = "diffusion") -> bool:
         """Check if a model is available and properly installed."""
         if model_type == "diffusion":
+            # Special case for simple_paste model - it's always available as it doesn't require external dependencies
+            if model_name == "simple_paste":
+                return True
+            
             config = self.get_diffusion_model_config(model_name)
             model_path = config["path"]
+            if model_path is None:
+                return False
             inference_script = os.path.join(model_path, config["inference_script"])
             return os.path.exists(inference_script)
         elif model_type == "object_detection":
@@ -79,12 +85,19 @@ class ModelManager:
     def get_inference_command(self, model_name: str, **kwargs) -> list:
         """Get the inference command for a diffusion model."""
         config = self.get_diffusion_model_config(model_name)
-        inference_script = os.path.join(config["path"], config["inference_script"])
         
         if model_name == "unicombine":
+            inference_script = os.path.join(config["path"], config["inference_script"])
             return self._get_unicombine_command(inference_script, **kwargs)
+        elif model_name == "simple_paste":
+            # Simple paste doesn't use inference commands
+            return []
         else:
             raise ValueError(f"No inference command defined for model: {model_name}")
+    
+    def is_simple_paste_model(self, model_name: str) -> bool:
+        """Check if the model is a simple paste model."""
+        return model_name == "simple_paste"
     
     def _get_unicombine_command(self, inference_script: str, **kwargs) -> list:
         """Get UniCombine inference command."""
