@@ -8,7 +8,7 @@ from think_n_blend.schemas import TextInsertion
 from think_n_blend.utils.image_utils import create_dummy_image, save_bounding_box_visualization
 from think_n_blend.services.model_manager import model_manager
 
-def object_insertion_pipeline(main_image: str, object_crop: str, verify: bool = False, diffusion_model: str = "unicombine"):
+def object_insertion_pipeline(main_image: str, object_crop: str, verify: bool = False, diffusion_model: str = "unicombine", output_dir: str = "output"):
     """Runs the object insertion pipeline."""
     print("=== Object Insertion Pipeline ===")
     
@@ -20,7 +20,7 @@ def object_insertion_pipeline(main_image: str, object_crop: str, verify: bool = 
     # --- Stage 1: GPT-4 Vision Reasoning ---
     print("\n--- Stage 1: GPT-4 Vision Reasoning ---")
     try:
-        vision_response = vision_service.get_vision_reasoning(main_image, object_crop)
+        vision_response = vision_service.get_vision_reasoning(main_image, object_crop, output_dir)
         print(f"Reference Object Label: {vision_response.reference_object.label}")
         print(f"Relative Position: {vision_response.target_object.relative_position}")
         print(f"Inpainting Description: {vision_response.target_object.inpainting_description}")
@@ -54,7 +54,8 @@ def object_insertion_pipeline(main_image: str, object_crop: str, verify: bool = 
         object_crop,
         vision_response.target_object.inpainting_description,
         target_box,
-        diffusion_model
+        diffusion_model,
+        output_dir
     )
 
     if final_image_path:
@@ -73,7 +74,7 @@ def object_insertion_pipeline(main_image: str, object_crop: str, verify: bool = 
             main_image,
             reference_box,
             target_box,
-            "output/object_bounding_boxes_visualization.jpg",
+            os.path.join(output_dir, "object_bounding_boxes_visualization.jpg"),
         )
         print("Saved visualization with reference and target boxes")
         return final_image_path
@@ -81,7 +82,7 @@ def object_insertion_pipeline(main_image: str, object_crop: str, verify: bool = 
         print("\nPipeline failed at the blending stage.")
         return None
 
-def text_insertion_pipeline(main_image: str, text: str, position: str = "top", verify: bool = False, diffusion_model: str = "unicombine"):
+def text_insertion_pipeline(main_image: str, text: str, verify: bool = False, diffusion_model: str = "unicombine", output_dir: str = "output"):
     """Runs the text insertion pipeline."""
     print("=== Text Insertion Pipeline ===")
     
@@ -90,35 +91,44 @@ def text_insertion_pipeline(main_image: str, text: str, position: str = "top", v
         print(f"Error: {diffusion_model} model not available")
         return None
     
-    # Create text insertion object
-    text_insertion = TextInsertion(
-        text=text,
-        position=position,
-        inpainting_description=f"text saying '{text}' in white color"
+    # --- Stage 1: GPT-4 Vision Reasoning ---
+    print("\n--- Stage 1: GPT-4 Vision Reasoning ---")
+    try:
+        vision_response = vision_service.get_text_vision_reasoning(main_image, text, output_dir)
+        print(f"Reference Object Label: {vision_response.reference_object.label}")
+        print(f"Relative Position: {vision_response.target_object.relative_position}")
+        print(f"Inpainting Description: {vision_response.target_object.inpainting_description}")
+    except Exception as e:
+        print(f"Error in Stage 1: {e}")
+        return None
+    print("---------------------------------------------")
+
+    # --- Stage 2: Zero-Shot Object Detection ---
+    print("\n--- Stage 2: Zero-Shot Object Detection ---")
+    reference_box = detection_service.detect_reference_object(
+        main_image, vision_response.reference_object.label
     )
-    
-    # Compute target box based on position
-    from PIL import Image
-    img = Image.open(main_image)
-    img_width, img_height = img.size
-    
-    if position == "top":
-        target_box = (0, 0, img_width, img_height // 4)
-    elif position == "bottom":
-        target_box = (0, 3 * img_height // 4, img_width, img_height)
-    elif position == "left":
-        target_box = (0, 0, img_width // 4, img_height)
-    elif position == "right":
-        target_box = (3 * img_width // 4, 0, img_width, img_height)
-    else:
-        target_box = (0, 0, img_width, img_height // 4)
-    
-    # Insert text
+    if not reference_box:
+        print(f"Could not detect '{vision_response.reference_object.label}' in the image.")
+        return None
+    print(f"Detected reference box: {reference_box}")
+    print("-----------------------------------------")
+
+    # --- Stage 3: Compute Target Insertion Bounding Box ---
+    print("\n--- Stage 3: Compute Target Bounding Box ---")
+    target_box = composition_service.compute_target_bounding_box(
+        main_image, reference_box, vision_response.target_object.relative_position
+    )
+    print(f"Computed target box: {target_box}")
+    print("------------------------------------------")
+
+    # --- Stage 4: Text Insertion ---
     result = text_service.insert_text_with_unicombine(
         main_image,
-        text_insertion,
+        text,
         target_box,
-        diffusion_model
+        diffusion_model,
+        output_dir
     )
     
     if result.success:
@@ -134,6 +144,13 @@ def text_insertion_pipeline(main_image: str, text: str, position: str = "top", v
             print(f"Detected text: {verification_result.detected_text}")
             print(f"Confidence: {verification_result.text_confidence}")
         
+        save_bounding_box_visualization(
+            main_image,
+            reference_box,
+            target_box,
+            os.path.join(output_dir, "text_bounding_boxes_visualization.jpg"),
+        )
+        print("Saved visualization with reference and target boxes")
         return result.output_path
     else:
         print(f"\nText insertion failed: {result.error_message}")
@@ -162,13 +179,12 @@ def main():
     parser.add_argument("--object_crop", type=str, default="input/object_crop.jpg", 
                        help="Path to the object crop image (for object mode).")
     parser.add_argument("--text", type=str, help="Text to insert (for text mode).")
-    parser.add_argument("--position", type=str, default="top", 
-                       choices=["top", "bottom", "left", "right"],
-                       help="Position for text insertion (for text mode).")
     parser.add_argument("--verify", action="store_true", 
                        help="Verify insertion quality using object detection/OCR.")
     parser.add_argument("--diffusion_model", type=str, default="unicombine",
                        help="Diffusion model to use for blending.")
+    parser.add_argument("--simple_paste", action="store_true",
+                       help="Use simple paste instead of diffusion model (no GPU required).")
     
     args = parser.parse_args()
 
@@ -177,6 +193,9 @@ def main():
         return
 
     # Input validation
+    # Override diffusion model if simple_paste flag is set
+    diffusion_model = "simple_paste" if args.simple_paste else args.diffusion_model
+    
     if args.mode == "object":
         if not os.path.exists(args.main_image):
             print(f"Main image not found at '{args.main_image}'. Creating a dummy file.")
@@ -185,7 +204,7 @@ def main():
             print(f"Object crop not found at '{args.object_crop}'. Creating a dummy file.")
             create_dummy_image(args.object_crop, (100, 100), 'blue')
         
-        return object_insertion_pipeline(args.main_image, args.object_crop, args.verify, args.diffusion_model)
+        return object_insertion_pipeline(args.main_image, args.object_crop, args.verify, diffusion_model)
     
     elif args.mode == "text":
         if not args.text:
@@ -195,7 +214,7 @@ def main():
             print(f"Main image not found at '{args.main_image}'. Creating a dummy file.")
             create_dummy_image(args.main_image, (800, 600), 'red')
         
-        return text_insertion_pipeline(args.main_image, args.text, args.position, args.verify, args.diffusion_model)
+        return text_insertion_pipeline(args.main_image, args.text, args.verify, diffusion_model)
 
 if __name__ == "__main__":
     main()
