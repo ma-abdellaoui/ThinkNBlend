@@ -62,15 +62,80 @@ The pipeline operates in four main stages:
 
 - Main image: JPEG, PNG (any resolution)
 - Text: String with font properties
-- Position: top, bottom, left, right
 - Output: JPEG with inserted text
 
 ### Output Specifications
 
 - **Format**: JPEG
 - **Quality**: High-resolution with realistic blending
-- **Metadata**: Includes bounding box coordinates and confidence scores
 - **Verification**: Optional quality assessment reports
+
+### Enhanced JSON Outputs
+
+The pipeline generates comprehensive intermediate outputs for analysis:
+
+**GPT Vision Analysis (`gpt_full_response.json`):**
+
+```json
+{
+  "raw_response": "Full GPT-4 Vision response text",
+  "model": "gpt-4-vision-preview",
+  "usage": {
+    "completion_tokens": 245,
+    "prompt_tokens": 1234,
+    "total_tokens": 1479
+  },
+  "completion_tokens": 245,
+  "prompt_tokens": 1234,
+  "total_tokens": 1479
+}
+```
+
+**Vision Reasoning (`object_vision_reasoning.json`):**
+
+```json
+{
+  "reference_object": {
+    "label": "tennis player's head",
+    "description": "Natural spot for hat placement",
+    "position_role": "reference"
+  },
+  "target_object": {
+    "label": "colorful propeller hat",
+    "description": "Whimsical hat for tennis player",
+    "relative_position": "top",
+    "inpainting_description": "Place hat on player's head"
+  }
+}
+```
+
+### Output Folder Structure
+
+Each test run creates separate folders for organized output management:
+
+```
+sample_outputs/
+├── sample_1_object_sample_1_obj_1/
+│   ├── final_result.jpg              # Final blended image
+│   ├── gpt_full_response.json        # Complete GPT API response
+│   ├── object_vision_reasoning.json   # Parsed vision analysis
+│   └── bounding_boxes_visualization.jpg # Debug visualization
+│
+├── sample_1_text_BRAND/
+│   ├── final_result.jpg              # Final text insertion
+│   ├── gpt_text_full_response.json   # GPT text analysis response
+│   ├── text_vision_reasoning.json    # Text placement reasoning
+│
+└── sample_2_object_sample_2_obj_1/
+    └── ... (similar structure)
+```
+
+**Benefits:**
+
+- Isolated outputs prevent file conflicts
+- Complete intermediate files for debugging
+- Easy result comparison across tests
+- Organized structure for batch processing
 
 ## Environment
 
@@ -87,21 +152,43 @@ The pipeline operates in four main stages:
 **Additional Libraries:**
 
 - EasyOCR (for text verification)
-- Pillow (image processing)
-- OpenCV (computer vision)
+- Pillow
+- OpenCV
+- NumPy
+- SciPy
+- Timm
 
 ### Hardware Requirements
 
-**Minimum:**
+**Full Pipeline Mode (with UniCombine):**
 
-- 8GB VRAM (NVIDIA GPU)
-- 10GB storage
+- 34GB VRAM (NVIDIA GPU)
+- CUDA 11.8+ support
+
+**Simple Paste Mode:**
+
+- CPU only (no GPU required)
+- 4GB RAM minimum
+
+**OpenAI API Access:**
+
+- Required for both modes
+- GPT-4 Vision API access
+- Estimated cost: <$0.01 per image
 
 ### Performance Metrics
 
-- **Processing Time**: 30-60 seconds per image (GPU) (when using diffusion based Blending)
-- **Memory Usage**: 34-40GB VRAM during processing (when using diffusion based Blending)
+**Full Pipeline Mode:**
+
+- **Processing Time**: 30-60 seconds per image (GPU)
+- **Memory Usage**: 34-40GB VRAM during processing
 - **Batch Processing**: Supported for multiple images
+
+**Simple Paste Mode:**
+
+- **Processing Time**: 5-15 seconds per image (CPU)
+- **Memory Usage**: 2-4GB RAM during processing
+- **Batch Processing**: Faster for multiple images
 
 ## Limitations
 
@@ -129,31 +216,21 @@ The pipeline operates in four main stages:
 4. **Text Orientation**: Limited to horizontal text
 5. **Language Support**: Primarily English text
 
-## Usage Examples
+## Improvement Ideas
 
-### Object Insertion
+### Short-term Improvements
 
-```bash
-python main.py --mode object \
-  --main_image input/scene.jpg \
-  --object_crop input/hat.png \
-  --verify
-```
+1. **Enhanced Blending**: Implement more advanced blending algorithms
+2. **Shadow Generation**: Add automatic shadow casting
+3. **Batch Processing**: Optimize for multiple insertions
+4. **Error Handling**: Better error recovery and reporting
 
-### Text Insertion
+### Long-term Enhancements
 
-```bash
-python main.py --mode text \
-  --main_image input/scene.jpg \
-  --text "BRAND" \
-  --verify
-```
-
-### Docker Deployment
-
-```bash
-docker-compose up --build
-```
+1. **Multi-object Insertion**: Support simultaneous multiple objects
+2. **Dynamic Lighting**: Automatic lighting adjustment
+3. **3D Integration**: Support for 3D object models
+4. **Custom Training**: Fine-tune models for specific domains
 
 ## Example Pipeline Output
 
@@ -198,9 +275,9 @@ _Green box: Calculated target insertion area_
 
 ### Final Output
 
-Using simple paste mode, the hat was inserted at the calculated position:
+Using Diffusion based Unicombine Model, the hat was inserted at the calculated position:
 
-![Simple Paste Result](assets/result_sample_1_obj_2.jpg)
+![Diffusion based Result](assets/result_sample_1_obj_2.jpg)
 
 _The colorful propeller hat has been placed on the tennis player's head as determined by the AI reasoning and object detection pipeline._
 
