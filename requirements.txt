@@ -1,0 +1,12 @@
+openai
+Pillow
+transformers
+torch
+timm
+einops
+scipy
+ftfy
+easyocr
+numpy
+opencv-python
+
