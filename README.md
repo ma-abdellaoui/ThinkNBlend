@@ -303,7 +303,54 @@ This will:
 
 ### Object Insertion Example
 
-See MODEL_CARD.md
+See MODEL_CARD.md For another Example.
+
+### Input Images
+
+- **Main Scene**: A tennis player in action
+
+![Main Scene](assets/sample_1.jpg)
+
+- **Target Object**: A gray and black cap
+
+![Target Object](assets/sample_1_obj_1.jpg)
+
+### GPT-4 Vision Analysis
+
+The pipeline analyzed the scene and generated this description:
+
+```json
+{
+  "reference_object": {
+    "label": "head",
+    "description": "The player's head is suitable as it is a natural place to wear a cap.",
+    "position_role": "reference"
+  },
+  "target_object": {
+    "label": "cap",
+    "description": "A gray and black cap that fits well as headwear for the player.",
+    "relative_position": "top",
+    "inpainting_description": "A gray cap with a black brim placed on the player's head, completing the sporty outfit."
+  }
+}
+```
+
+### Object Detection and Bounding Box Visualization
+
+The pipeline detected the tennis player's head and calculated the optimal placement for the hat:
+
+![Bounding Box Visualization](assets/object_bounding_boxes_visualization.jpg)
+
+_Red box: Detected reference object (tennis player's head)_
+_Green box: Calculated target insertion area_
+
+### Final Output
+
+Using diffusion mode, the hat was inserted at the calculated position:
+
+![Simple Paste Result](assets/result_sample_1_obj_1.jpg)
+
+_The gray and black cap has been placed on the tennis player's head as determined by the AI reasoning and object detection pipeline._
 
 ## 🤝 Contributing
 
