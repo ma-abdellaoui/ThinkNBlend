@@ -13,6 +13,32 @@ The pipeline operates in four main stages:
 3. **Bounding Box Computation**: Calculates target insertion area based on relative positioning
 4. **Stable Diffusion Blending**: Uses UniCombine to seamlessly blend objects/text into the scene
 
+### Pipeline Workflow Example
+
+**Stage 1: GPT-4 Vision Analysis**
+
+- Input: Main scene + target object
+- Output: JSON description with reference object and placement strategy
+- Example: "tennis player's head" → "place hat on top"
+
+**Stage 2: Object Detection**
+
+- Input: Main scene + reference object label
+- Output: Bounding box coordinates for reference object
+- Example: Detects tennis player's head location
+
+**Stage 3: Target Box Calculation**
+
+- Input: Reference box + relative position
+- Output: Target insertion bounding box
+- Example: Calculates hat placement area above head
+
+**Stage 4: Image Generation**
+
+- Input: Main scene + target object + target box
+- Output: Final blended image
+- Example: Hat inserted at calculated position
+
 ### Key Features
 
 - **Object Insertion**: Realistically inserts objects (e.g., hats, bottles) into scenes
@@ -20,6 +46,7 @@ The pipeline operates in four main stages:
 - **Context Awareness**: Uses AI reasoning to determine natural placement
 - **Quality Verification**: Optional object detection and OCR verification
 - **Docker Deployment**: Containerized for easy GPU deployment
+- **Simple Paste Mode**: Lightweight alternative without diffusion models
 
 ## Inputs / Outputs
 
@@ -67,96 +94,14 @@ The pipeline operates in four main stages:
 
 **Minimum:**
 
-- 8GB RAM
-- 34GB VRAM (NVIDIA GPU)
+- 8GB VRAM (NVIDIA GPU)
 - 10GB storage
-
-**Recommended:**
-
-- 16GB RAM
-- 40GB+ VRAM (NVIDIA GPU)
-- 20GB storage
 
 ### Performance Metrics
 
-- **Processing Time**: 30-60 seconds per image (GPU)
-- **Memory Usage**: 34-40GB VRAM during processing
+- **Processing Time**: 30-60 seconds per image (GPU) (when using diffusion based Blending)
+- **Memory Usage**: 34-40GB VRAM during processing (when using diffusion based Blending)
 - **Batch Processing**: Supported for multiple images
-- **Scalability**: Linear scaling with GPU memory
-
-## Setup Instructions
-
-### UniCombine Model Setup
-
-**IMPORTANT**: Before using ThinkNBlend, you must follow the UniCombine repository instructions to download the required weights and models:
-
-1. **Navigate to UniCombine directory**:
-
-   ```bash
-   cd submodules/UniCombine
-   ```
-
-2. **Follow UniCombine README instructions**:
-
-   - Download the required model weights
-   - Install UniCombine-specific requirements
-   - Set up the model checkpoints
-
-3. **Install UniCombine requirements**:
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Download model weights** (refer to UniCombine documentation for specific URLs):
-
-   - FLUX.1-schnell model
-   - Condition-LoRA weights
-   - Denoising-LoRA weights
-
-5. **Verify installation**:
-   ```bash
-   python inference.py --help
-   ```
-
-**Note**: The exact download instructions and model URLs can be found in the UniCombine repository README at `submodules/UniCombine/README.md`.
-
-## Setup Instructions
-
-### UniCombine Model Setup
-
-**IMPORTANT**: Before using ThinkNBlend, you must follow the UniCombine repository instructions to download the required weights and models:
-
-1. **Navigate to UniCombine directory**:
-
-   ```bash
-   cd submodules/UniCombine
-   ```
-
-2. **Follow UniCombine README instructions**:
-
-   - Download the required model weights
-   - Install UniCombine-specific requirements
-   - Set up the model checkpoints
-
-3. **Install UniCombine requirements**:
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Download model weights** (refer to UniCombine documentation for specific URLs):
-
-   - FLUX.1-schnell model
-   - Condition-LoRA weights
-   - Denoising-LoRA weights
-
-5. **Verify installation**:
-   ```bash
-   python inference.py --help
-   ```
-
-**Note**: The exact download instructions and model URLs can be found in the UniCombine repository README at `submodules/UniCombine/README.md`.
 
 ## Limitations
 
@@ -184,67 +129,6 @@ The pipeline operates in four main stages:
 4. **Text Orientation**: Limited to horizontal text
 5. **Language Support**: Primarily English text
 
-## Improvement Ideas
-
-### Short-term Improvements
-
-1. **Enhanced Blending**: Implement advanced blending algorithms
-2. **Shadow Generation**: Add automatic shadow casting
-3. **Perspective Matching**: Improve perspective alignment
-4. **Batch Processing**: Optimize for multiple insertions
-5. **Error Handling**: Better error recovery and reporting
-
-### Long-term Enhancements
-
-1. **Multi-object Insertion**: Support simultaneous multiple objects
-2. **Dynamic Lighting**: Automatic lighting adjustment
-3. **3D Integration**: Support for 3D object models
-4. **Video Support**: Extend to video sequences
-5. **Custom Training**: Fine-tune models for specific domains
-
-### Research Directions
-
-1. **Neural Rendering**: Implement neural rendering techniques
-2. **Physics Integration**: Add physics-based constraints
-3. **Style Transfer**: Maintain consistent artistic styles
-4. **Interactive Editing**: Real-time editing capabilities
-5. **Quality Metrics**: Automated quality assessment
-
-## Reusability
-
-### Domain Adaptability
-
-**Current Domains:**
-
-- Photography enhancement
-- E-commerce product placement
-- Marketing material creation
-- Educational content generation
-
-**Potential Extensions:**
-
-- Medical imaging annotation
-- Architectural visualization
-- Gaming asset generation
-- Scientific illustration
-- Legal evidence enhancement
-
-### Customization Options
-
-1. **Model Fine-tuning**: Adapt to specific object categories
-2. **Style Transfer**: Match different artistic styles
-3. **Domain-specific Prompts**: Customize reasoning prompts
-4. **Quality Thresholds**: Adjust verification sensitivity
-5. **Output Formats**: Support various output specifications
-
-### Integration Capabilities
-
-1. **API Interface**: RESTful API for web integration
-2. **Plugin Architecture**: Modular service design
-3. **Cloud Deployment**: Docker containerization
-4. **Batch Processing**: Command-line interface
-5. **Quality Monitoring**: Automated verification pipeline
-
 ## Usage Examples
 
 ### Object Insertion
@@ -262,7 +146,6 @@ python main.py --mode object \
 python main.py --mode text \
   --main_image input/scene.jpg \
   --text "BRAND" \
-  --position top \
   --verify
 ```
 
@@ -272,6 +155,55 @@ python main.py --mode text \
 docker-compose up --build
 ```
 
+## Example Pipeline Output
+
+### Input Images
+
+- **Main Scene**: A tennis player in action
+
+![Main Scene](assets/sample_1.jpg)
+
+- **Target Object**: A colorful propeller hat
+
+![Target Object](assets/sample_1_obj_2.jpg)
+
+### GPT-4 Vision Analysis
+
+The pipeline analyzed the scene and generated this description:
+
+```json
+{
+  "reference_object": {
+    "label": "tennis player's head",
+    "description": "The head of the tennis player is a natural spot for a hat, fitting the context of someone ready to play tennis.",
+    "position_role": "reference"
+  },
+  "target_object": {
+    "label": "colorful propeller hat",
+    "description": "A colorful propeller hat, adding a fun and playful element to the tennis player's appearance.",
+    "relative_position": "top",
+    "inpainting_description": "Place a colorful propeller hat on the tennis player's head, adding a whimsical touch to his appearance during the match."
+  }
+}
+```
+
+### Object Detection and Bounding Box Visualization
+
+The pipeline detected the tennis player's head and calculated the optimal placement for the hat:
+
+![Bounding Box Visualization](assets/object_bounding_boxes_visualization.jpg)
+
+_Red box: Detected reference object (tennis player's head)_
+_Green box: Calculated target insertion area_
+
+### Final Output
+
+Using simple paste mode, the hat was inserted at the calculated position:
+
+![Simple Paste Result](assets/result_sample_1_obj_2.jpg)
+
+_The colorful propeller hat has been placed on the tennis player's head as determined by the AI reasoning and object detection pipeline._
+
 ## Citation
 
 If you use ThinkNBlend in your research, please cite:
@@ -279,12 +211,12 @@ If you use ThinkNBlend in your research, please cite:
 ```bibtex
 @misc{thinknblend2024,
   title={ThinkNBlend: Context-Aware Object and Text Insertion Pipeline},
-  author={ThinkNBlend Team},
-  year={2024},
-  url={https://github.com/your-repo/ThinkNBlend}
+  author={Alaeddin Abdellaoui},
+  year={2025},
+  url={https://github.com/ma-abdellaoui/ThinkNBlend}
 }
 ```
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the Apache-2.0 License - see the LICENSE file for details.
