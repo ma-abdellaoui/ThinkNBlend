@@ -12,13 +12,14 @@ A comprehensive pipeline for realistically inserting synthetic objects and text 
 - **Quality Verification**: Optional object detection and OCR verification
 - **Batch Processing**: Handle multiple images efficiently
 - **Docker Deployment**: Containerized for GPU deployment
+- **Simple Paste Mode**: Lightweight alternative without diffusion models (no GPU required)
 
 ## 📋 Requirements
 
 - Python 3.10+
 - NVIDIA GPU with CUDA 11.8+
 - OpenAI API key
-- 8GB+ RAM, 34GB+ VRAM
+- 8GB+ RAM, 34GB+ VRAM(Only if using Diffusion based Blending)
 
 ## 🛠️ Installation
 
@@ -43,9 +44,9 @@ pip install -r requirements.txt
 export OPENAI_API_KEY="your-api-key-here"
 ```
 
-### UniCombine Setup (Required)
+### UniCombine Setup (Required for Diffusion based Blending)
 
-**IMPORTANT**: Before using ThinkNBlend, you must set up the UniCombine model:
+**IMPORTANT**: Before using ThinkNBlend, you must set up the UniCombine model in case you want to use the diffusion based blending:
 
 1. **Navigate to UniCombine directory**:
 
@@ -57,7 +58,7 @@ export OPENAI_API_KEY="your-api-key-here"
 
    - Download the required model weights
    - Install UniCombine-specific requirements
-   - Set up the model checkpoints
+   - Set up the model checkpoints (update checkpoint paths in downloaded elsewhere)
 
 3. **Install UniCombine requirements**:
 
@@ -70,11 +71,6 @@ export OPENAI_API_KEY="your-api-key-here"
    - FLUX.1-schnell model
    - Condition-LoRA weights
    - Denoising-LoRA weights
-
-5. **Verify installation**:
-   ```bash
-   python inference.py --help
-   ```
 
 **Note**: The exact download instructions and model URLs can be found in the UniCombine repository README at `submodules/UniCombine/README.md`.
 
@@ -105,6 +101,15 @@ python main.py --mode object \
   --verify
 ```
 
+**Simple Paste Mode** (no GPU required):
+
+```bash
+python main.py --mode object \
+  --main_image input/scene.jpg \
+  --object_crop input/hat.png \
+  --simple_paste
+```
+
 ### Text Insertion
 
 Insert text into a scene:
@@ -113,8 +118,16 @@ Insert text into a scene:
 python main.py --mode text \
   --main_image input/scene.jpg \
   --text "BRAND" \
-  --position top \
   --verify
+```
+
+**Simple Paste Mode** (no GPU required):
+
+```bash
+python main.py --mode text \
+  --main_image input/scene.jpg \
+  --text "BRAND" \
+  --simple_paste
 ```
 
 ### Model Management
@@ -152,8 +165,14 @@ python -m think_n_blend.batch_processor \
   --mode text \
   --input_dir input/scenes \
   --texts  "BRAND" "LOGO" \
-  --positions top bottom \
   --verify
+```
+
+**Simple Paste Mode** (no GPU required):
+
+```bash
+# Test with simple paste
+python test_pipeline.py --simple_paste
 ```
 
 ## 🏗️ Architecture
@@ -261,9 +280,8 @@ docker run --gpus all -v $(pwd)/input:/app/input -v $(pwd)/output:/app/output \
 
 ## 📈 Performance
 
-- **Processing Time**: 30-60 seconds per image (GPU)
-- **Memory Usage**: 34-40GB VRAM during processing
-- **Batch Processing**: Linear scaling with GPU memory
+- **Processing Time**: 30-60 seconds per image (GPU) (if using diffusion blending)
+- **Memory Usage**: 34-40GB VRAM during processing (if using diffusion blending)
 - **Quality**: High-resolution outputs with realistic blending
 
 ## 🔍 Verification
@@ -285,41 +303,18 @@ This will:
 
 ### Object Insertion Example
 
-Input:
-
-- Main image: Person in a park
-- Object crop: Baseball cap
-
-Output:
-
-- Realistically placed cap on person's head
-- Proper lighting and shadow integration
-- Context-aware positioning
-
-### Text Insertion Example
-
-Input:
-
-- Main image: Street scene
-- Text: "BRAND"
-
-Output:
-
-- Text integrated into scene
-- Appropriate font and color
-- Natural positioning
+See MODEL_CARD.md
 
 ## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Add tests
-5. Submit a pull request
+4. Submit a pull request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the Apache-2.0 - see the LICENSE file for details.
 
 ## 📚 Citation
 
@@ -328,9 +323,9 @@ If you use ThinkNBlend in your research:
 ```bibtex
 @misc{thinknblend2024,
   title={ThinkNBlend: Context-Aware Object and Text Insertion Pipeline},
-  author={ThinkNBlend Team},
-  year={2024},
-  url={https://github.com/your-repo/ThinkNBlend}
+  author={Alaeddin Abdellaoui},
+  year={2025},
+  url={https://github.com/ma-abdellaoui/ThinkNBlend/}
 }
 ```
 
@@ -343,8 +338,4 @@ If you use ThinkNBlend in your research:
 
 ## 🔄 Updates
 
-- **v1.0**: Initial release with object insertion
-- **v1.1**: Added text insertion capabilities
-- **v1.2**: Implemented batch processing
-- **v1.3**: Added quality verification
-- **v1.4**: Docker containerization
+- **v1.0**: Initial release
