@@ -1,0 +1,13 @@
+{
+  "reference_object": {
+    "label": "tennis player's head",
+    "description": "The head of the tennis player is a natural spot for a hat, fitting the context of someone ready to play tennis.",
+    "position_role": "reference"
+  },
+  "target_object": {
+    "label": "colorful propeller hat",
+    "description": "A colorful propeller hat, adding a fun and playful element to the tennis player's appearance.",
+    "relative_position": "top",
+    "inpainting_description": "Place a colorful propeller hat on the tennis player's head, adding a whimsical touch to his appearance during the match."
+  }
+}
