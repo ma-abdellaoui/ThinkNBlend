@@ -316,7 +316,6 @@ The pipeline creates organized output folders for detailed analysis and debuggin
 output/
 ├── final_result.jpg                    # Final processed image
 ├── gpt_full_response.json              # Complete GPT-4 Vision response
-├── gpt_text_full_response.json         # GPT response for text insertion
 ├── object_vision_reasoning.json        # Extracted object reasoning
 ├── text_vision_reasoning.json          # Extracted text reasoning
 ├── simple_paste_result.jpg             # Simple paste mode result
@@ -403,7 +402,7 @@ Edit `think_n_blend/config.py` to customize:
 
 ## 📊 Quality Assessment
 
-The pipeline includes comprehensive quality assessment:
+The pipeline includes suggestions for a comprehensive quality assessment:
 
 - **Visual Realism**: FID, LPIPS, CLIPScore metrics
 - **Label Accuracy**: Object detection and OCR verification
@@ -437,14 +436,6 @@ docker run --gpus all -v $(pwd)/input:/app/input -v $(pwd)/output:/app/output \
 - **Processing Time**: 30-60 seconds per image (GPU) (if using diffusion blending)
 - **Memory Usage**: 34-40GB VRAM during processing (if using diffusion blending)
 - **Quality**: High-resolution outputs with realistic blending
-
-## 🔍 Verification
-
-Enable verification to check insertion quality:
-
-```bash
-python main.py --mode object --verify
-```
 
 This will:
 
